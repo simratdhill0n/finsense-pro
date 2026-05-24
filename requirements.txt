@@ -22,3 +22,8 @@ faker>=24.0.0
 # Utilities
 pyyaml
 python-dotenv
+
+# NER evaluation
+datasets>=2.19.0
+seqeval>=1.2.
+accelerate>=1.1.0

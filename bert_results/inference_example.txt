@@ -1,0 +1,30 @@
+INPUT:
+INVOICE
+Invoice #: INV-999888
+Date: April 10, 2026
+
+Bill To:
+Simrat Enterprises
+123 Maple Avenue, Toronto, ON
+
+Vendor:
+Ottawa Consulting Group
+456 Bay Street, ON
+
+Description                Amount
+-----------------------------------
+Consulting Services        $3,200.00
+Office Equipment           $800.00
+
+-----------------------------------
+Subtotal                   $4,000.00
+HST (13%)                  $520.00
+===================================
+Total Due                  $4,520.00
+
+Thank you for your business!
+
+EXTRACTED ENTITIES:
+  INVOICE_NUM     → INV-999888
+  VENDOR          → Ottawa Consulting Group
+  AMOUNT          → $3,200.00
