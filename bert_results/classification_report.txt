@@ -1,0 +1,9 @@
+              precision    recall  f1-score   support
+
+      AMOUNT       1.00      1.00      1.00       300
+ INVOICE_NUM       1.00      1.00      1.00       300
+      VENDOR       0.99      1.00      0.99       297
+
+   micro avg       1.00      1.00      1.00       897
+   macro avg       1.00      1.00      1.00       897
+weighted avg       1.00      1.00      1.00       897

@@ -1,0 +1,7 @@
+BERT NER Training Summary
+========================================
+Epoch 1.0: F1=0.9961, Val Loss=0.0132
+Epoch 2.0: F1=0.9961, Val Loss=0.0098
+Epoch 3.0: F1=0.9961, Val Loss=0.0091
+Epoch 4.0: F1=0.9961, Val Loss=0.0085
+Epoch 5.0: F1=0.9961, Val Loss=0.0089
