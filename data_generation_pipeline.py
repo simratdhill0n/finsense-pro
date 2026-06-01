@@ -19,10 +19,6 @@ class DataGenerationPipeline:
         self.vendors = ["ABC Supplies Ltd", "Maple Tech Solutions", "Toronto Office Depot",
                         "Vancouver Logistics Inc", "Ottawa Consulting Group", "Montreal Hardware Co"]
 
-    @staticmethod
-    def _clip_amount(value):
-        return max(0.0, round(value, 2))
-
     def generate_document(self):
         """Generate one realistic document of random type"""
         doc_type = random.choice(self.document_types)
@@ -38,11 +34,8 @@ class DataGenerationPipeline:
 
     def _generate_invoice(self):
         vendor = random.choice(self.vendors)
-        amount = self._clip_amount(np.random.normal(1500, 600))
-        doc_date = fake.date_between(start_date='-18m', end_date='today')
-        hst = round(amount * 0.13, 2)
-        total = round(amount + hst, 2)
-
+        amount = round(np.random.normal(1500, 600), 2)
+        
         text = f"""INVOICE
 Invoice #: INV-{fake.unique.random_number(digits=6)}
 Date: {doc_date.strftime('%B %d, %Y')}
@@ -53,22 +46,22 @@ Vendor: {vendor}
 Description                  Amount
 -------------------------------
 Office Supplies              ${amount:,.2f}
-HST (13%)                    ${hst:,.2f}
+HST (13%)                    ${round(amount*0.13, 2):,.2f}
 -------------------------------
-Total Due                    ${total:,.2f}"""
+Total Due                    ${amount + round(amount*0.13, 2):,.2f}"""
 
         return {
             'document_type': 'invoice',
             'vendor_name': vendor,
             'amount': amount,
-            'date': doc_date,
+            'date': fake.date_between(start_date='-18m', end_date='today'),
             'invoice_text': text,
             'is_anomaly': False,
             'anomaly_type': 'normal'
         }
 
     def _generate_t4(self):
-        income = self._clip_amount(np.random.normal(65000, 15000))
+        income = round(np.random.normal(65000, 15000), 2)
         return {
             'document_type': 't4',
             'vendor_name': "Canada Revenue Agency",
@@ -80,20 +73,19 @@ Total Due                    ${total:,.2f}"""
         }
 
     def _generate_bank_statement(self):
-        balance = self._clip_amount(np.random.normal(4500, 2000))
-        period_end = fake.date_between(start_date='-3m', end_date='today')
+        balance = round(np.random.normal(4500, 2000), 2)
         return {
             'document_type': 'bank_statement',
             'vendor_name': "RBC Royal Bank",
             'amount': balance,
-            'date': period_end,
-            'invoice_text': f"""BANK STATEMENT\nAccount Balance: ${balance:,.2f}\nPeriod: {period_end}""",
+            'date': fake.date_between(start_date='-3m', end_date='today'),
+            'invoice_text': f"""BANK STATEMENT\nAccount Balance: ${balance:,.2f}\nPeriod: {fake.date_between(start_date='-3m', end_date='today')}""",
             'is_anomaly': False,
             'anomaly_type': 'normal'
         }
 
     def _generate_expense_report(self):
-        amount = self._clip_amount(np.random.normal(850, 400))
+        amount = round(np.random.normal(850, 400), 2)
         return {
             'document_type': 'expense_report',
             'vendor_name': fake.company(),
@@ -115,7 +107,7 @@ Total Due                    ${total:,.2f}"""
             anomaly_type = random.choice(['amount_spike', 'fake_vendor', 'unusual_timing'])
 
         if anomaly_type == 'amount_spike':
-            doc['amount'] = self._clip_amount(doc['amount'] * random.uniform(2.5, 4.5))
+            doc['amount'] = round(doc['amount'] * random.uniform(2.5, 4.5), 2)
 
         elif anomaly_type == 'duplicate' and 'INV-' in doc.get('invoice_text', ''):
             doc['invoice_text'] = doc['invoice_text'].replace("INV-", "DUP-")
@@ -124,24 +116,25 @@ Total Due                    ${total:,.2f}"""
             doc['vendor_name'] = fake.company() + " (Suspicious)"
 
         elif anomaly_type == 'unusual_timing':
-            doc['date'] = fake.date_between(start_date='-18m', end_date='today')
+            doc['date'] = fake.date_time_between(start_date='-18m', end_date='now').replace(
+                hour=random.randint(22, 23), minute=random.randint(0, 59))
 
         elif anomaly_type == 'payment_redirection':
             doc['invoice_text'] += "\n\nIMPORTANT: Our bank details have changed. " \
                                    "Please pay to new account ending in 7845."
 
         elif anomaly_type == 'round_amount':
-            doc['amount'] = self._clip_amount(round(doc['amount'] / 1000) * 1000)
+            doc['amount'] = round(doc['amount'] / 1000) * 1000
 
         elif anomaly_type == 'overbilling':
-            doc['amount'] = self._clip_amount(doc['amount'] * random.uniform(1.4, 2.2))
+            doc['amount'] = round(doc['amount'] * random.uniform(1.4, 2.2), 2)
 
         doc['is_anomaly'] = True
         doc['anomaly_type'] = anomaly_type
         return doc
 
     def run(self):
-        print("Starting Data Generation Pipeline (4 Document Types)...")
+        print("🚀 Starting Data Generation Pipeline (4 Document Types)...")
         
         normal_count = int(self.num_samples * (1 - self.anomaly_rate))
         anomaly_count = self.num_samples - normal_count
@@ -165,7 +158,7 @@ Total Due                    ${total:,.2f}"""
         df.to_csv('data/invoices_dataset.csv', index=False)
         df.sample(100).to_csv('data/sample_invoices.csv', index=False)
         
-        print("\nDataset generated successfully!")
+        print(f"\n✅ Dataset generated successfully!")
         print(f"   Total samples : {len(df):,}")
         print(f"   Anomalous     : {df['is_anomaly'].sum():,} ({df['is_anomaly'].mean():.1%})")
         print("\nDocument Type Distribution:")
@@ -173,7 +166,7 @@ Total Due                    ${total:,.2f}"""
         print("\nAnomaly Distribution:")
         print(df[df['is_anomaly']]['anomaly_type'].value_counts())
         
-        print("\nFiles saved:")
+        print("\n💾 Files saved:")
         print("   - data/invoices_dataset.csv")
         print("   - data/sample_invoices.csv")
         
