@@ -35,6 +35,7 @@ class DataGenerationPipeline:
     def _generate_invoice(self):
         vendor = random.choice(self.vendors)
         amount = round(np.random.normal(1500, 600), 2)
+        doc_date = fake.date_between(start_date='-18m', end_date='today')
         
         text = f"""INVOICE
 Invoice #: INV-{fake.unique.random_number(digits=6)}
@@ -54,7 +55,7 @@ Total Due                    ${amount + round(amount*0.13, 2):,.2f}"""
             'document_type': 'invoice',
             'vendor_name': vendor,
             'amount': amount,
-            'date': fake.date_between(start_date='-18m', end_date='today'),
+            'date': doc_date,
             'invoice_text': text,
             'is_anomaly': False,
             'anomaly_type': 'normal'
@@ -62,11 +63,12 @@ Total Due                    ${amount + round(amount*0.13, 2):,.2f}"""
 
     def _generate_t4(self):
         income = round(np.random.normal(65000, 15000), 2)
+        doc_date = fake.date_between(start_date='-1y', end_date='today')
         return {
             'document_type': 't4',
             'vendor_name': "Canada Revenue Agency",
             'amount': income,
-            'date': fake.date_between(start_date='-1y', end_date='today'),
+            'date': doc_date,
             'invoice_text': f"""T4 Statement of Remuneration Paid\nEmployment Income: ${income:,.2f}\nSIN: {fake.ssn()}""",
             'is_anomaly': False,
             'anomaly_type': 'normal'
@@ -74,30 +76,32 @@ Total Due                    ${amount + round(amount*0.13, 2):,.2f}"""
 
     def _generate_bank_statement(self):
         balance = round(np.random.normal(4500, 2000), 2)
+        doc_date = fake.date_between(start_date='-3m', end_date='today')
         return {
             'document_type': 'bank_statement',
             'vendor_name': "RBC Royal Bank",
             'amount': balance,
-            'date': fake.date_between(start_date='-3m', end_date='today'),
-            'invoice_text': f"""BANK STATEMENT\nAccount Balance: ${balance:,.2f}\nPeriod: {fake.date_between(start_date='-3m', end_date='today')}""",
+            'date': doc_date,
+            'invoice_text': f"""BANK STATEMENT\nAccount Balance: ${balance:,.2f}\nPeriod: {doc_date.strftime('%B %Y')}""",
             'is_anomaly': False,
             'anomaly_type': 'normal'
         }
 
     def _generate_expense_report(self):
         amount = round(np.random.normal(850, 400), 2)
+        doc_date = fake.date_between(start_date='-6m', end_date='today')
         return {
             'document_type': 'expense_report',
             'vendor_name': fake.company(),
             'amount': amount,
-            'date': fake.date_between(start_date='-6m', end_date='today'),
-            'invoice_text': f"""EXPENSE REPORT\nTotal Expenses: ${amount:,.2f}\nSubmitted by: Employee""",
+            'date': doc_date,
+            'invoice_text': f"""EXPENSE REPORT\nTotal Expenses: ${amount:,.2f}\nSubmitted by: Employee\nDate: {doc_date.strftime('%B %d, %Y')}""",
             'is_anomaly': False,
             'anomaly_type': 'normal'
         }
 
     def inject_anomaly(self, doc):
-        """Apply realistic fraud patterns - fully implemented"""
+        """Apply realistic fraud patterns"""
         if doc['document_type'] == 'invoice':
             anomaly_type = random.choice([
                 'amount_spike', 'duplicate', 'fake_vendor', 
